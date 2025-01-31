@@ -3,23 +3,28 @@ import jwt from 'jsonwebtoken';
 import bcrypt from "bcryptjs"
 
 const userSchema = new mongoose.Schema({
-    UserName:{type:String,required:true},
+    fullName:{type:String,required:true},
+    userName:{type:String,required:true},
     email:{type:String,required:true,unique:true},
     password:{type:String},
     isVerified:{type:Boolean,default:false},
     verificationCode: { type: String }, 
     verificationExpiry: { type: Date },
-    refereshToken:{type:String}
+    refreshToken:{type:String}
 }, {timestamps: true});
 
 userSchema.pre("save",async function (next) {
-    if(this.isModified("password")) return next();
-
-    this.password=await bcrypt.hash(this.password,10)
+    if(!this.isModified("password")) return next();
+    
+    console.log("inside pre create user",this.password);
+    this.password= await bcrypt.hash(this.password,10)
+    console.log("inside pre create user after encrption",this.password);
     next()
 })
 
 userSchema.methods.isPasswordCorrect=async function (password) {
+    console.log(password,"<<password");
+    console.log(this.password,"this.password");
     return  await bcrypt.compare(password,this.password)
 }
 
@@ -38,4 +43,17 @@ userSchema.methods.generateAccessToken=function(){
     )
 }
 
-export const User = mongoose.model("User", userSchema)
+userSchema.methods.generateRefreshToken = function(){
+    return jwt.sign(
+        {
+            _id: this._id,
+            
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+        }
+    )
+}
+
+export const User = mongoose.model("User", userSchema) 
