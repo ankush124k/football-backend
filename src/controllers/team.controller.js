@@ -33,4 +33,35 @@ const createTeam = asyncHandler(async (req, res, next) => {
     );
 });
 
-export { createTeam };
+const getTeamList = asyncHandler(async (req, res, next) => {
+    const teams = await Team.find().populate("players");
+
+    if (!teams || teams.length === 0) {
+        throw new ApiError(404, "No teams found!");
+    }
+
+    res.status(200).json(new ApiResponse(200, { teams }, "Teams retrieved successfully!"));
+});
+
+
+
+const getTeam = asyncHandler(async (req, res) => {
+    const { id, teamName } = req.query;  // Accepting ID or teamName as query parameters
+
+    if (!id && !teamName) {
+        throw new ApiError(400, "Please provide either a team ID or team name!");
+    }
+
+    // Finding team based on ID or teamName
+    const team = await Team.findOne({
+        $or: [{ _id: id }, { teamName: teamName }],
+    }).populate("players");
+
+    if (!team) {
+        throw new ApiError(404, "Team not found!");
+    }
+
+    res.status(200).json(new ApiResponse(200, { team }, "Team details retrieved successfully!"));
+});
+
+export { createTeam ,getTeamList,getTeam};
