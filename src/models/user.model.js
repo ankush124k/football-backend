@@ -16,15 +16,11 @@ const userSchema = new mongoose.Schema({
 userSchema.pre("save",async function (next) {
     if(!this.isModified("password")) return next();
     
-    console.log("inside pre create user",this.password);
     this.password= await bcrypt.hash(this.password,10)
-    console.log("inside pre create user after encrption",this.password);
     next()
 })
 
 userSchema.methods.isPasswordCorrect=async function (password) {
-    console.log(password,"<<password");
-    console.log(this.password,"this.password");
     return  await bcrypt.compare(password,this.password)
 }
 

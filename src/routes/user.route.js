@@ -18,7 +18,7 @@ const router=Router()
 
 // all are secured routes
 router.route('/register').post(registerUser);
-router.route('/loginUser').post(loginUser);
+router.route('/loginUser').post(verifyJWT,loginUser);
 
 
 export default router;
